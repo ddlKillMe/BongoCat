@@ -1,6 +1,7 @@
 import type { LiteralUnion } from 'type-fest'
 
 import { invoke } from '@tauri-apps/api/core'
+import { emit } from '@tauri-apps/api/event'
 import { computed, reactive, watch } from 'vue'
 
 import { INVOKE_KEY, LISTEN_KEY } from '@/constants'
@@ -45,6 +46,15 @@ export function useGamepad() {
     right: sticks.right.moved || sticks.right.pressed,
   }))
 
+  function publishGamepadActivity(kind: 'GamepadButtonChanged' | 'GamepadAxisChanged', name: string, value: number) {
+    void emit(LISTEN_KEY.LOCAL_ACTIVITY, {
+      kind,
+      name,
+      value,
+      modelMode: modelStore.currentModel?.mode ?? 'standard',
+    })
+  }
+
   watch(() => modelStore.currentModel?.mode, (mode) => {
     if (mode === 'gamepad') {
       return invoke(INVOKE_KEY.START_GAMEPAD_LISTING)
@@ -67,6 +77,9 @@ export function useGamepad() {
 
   useTauriListen<GamepadEvent>(LISTEN_KEY.GAMEPAD_CHANGED, ({ payload }) => {
     const { name, value } = payload
+    const activityKind = payload.kind === 'AxisChanged' ? 'GamepadAxisChanged' : 'GamepadButtonChanged'
+
+    publishGamepadActivity(activityKind, name, value)
 
     switch (name) {
       case 'LeftStickX':

@@ -4,6 +4,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 
 import Main from '../pages/main/index.vue'
 import Preference from '../pages/preference/index.vue'
+import Remote from '../pages/remote/index.vue'
 
 const routes: Readonly<RouteRecordRaw[]> = [
   {
@@ -13,6 +14,10 @@ const routes: Readonly<RouteRecordRaw[]> = [
   {
     path: '/preference',
     component: Preference,
+  },
+  {
+    path: '/remote',
+    component: Remote,
   },
 ]
 

@@ -33,6 +33,19 @@
         "minWidth": 800,
         "minHeight": 600,
         "skipTaskbar": true
+      },
+      {
+        "label": "remote",
+        "title": "BongoCat Remote",
+        "url": "index.html/#/remote",
+        "visible": false,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "transparent": true,
+        "decorations": false,
+        "acceptFirstMouse": true,
+        "skipTaskbar": true,
+        "maximizable": false
       }
     ],
     "security": {

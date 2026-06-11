@@ -18,6 +18,7 @@ import { getAntdLocale } from './locales/index.ts'
 import { hideWindow, showWindow } from './plugins/window'
 import { useAppStore } from './stores/app'
 import { useCatStore } from './stores/cat'
+import { useConnectionStore } from './stores/connection'
 import { useGeneralStore } from './stores/general'
 import { useModelStore } from './stores/model'
 import { useShortcutStore } from './stores/shortcut.ts'
@@ -25,6 +26,7 @@ import { useShortcutStore } from './stores/shortcut.ts'
 const appStore = useAppStore()
 const modelStore = useModelStore()
 const catStore = useCatStore()
+const connectionStore = useConnectionStore()
 const generalStore = useGeneralStore()
 const shortcutStore = useShortcutStore()
 const appWindow = getCurrentWebviewWindow()
@@ -39,6 +41,7 @@ onMounted(async () => {
   await modelStore.init()
   await catStore.$tauri.start()
   catStore.init()
+  await connectionStore.$tauri.start()
   await generalStore.$tauri.start()
   await generalStore.init()
   await shortcutStore.$tauri.start()

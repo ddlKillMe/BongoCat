@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import { PhysicalPosition } from '@tauri-apps/api/dpi'
+import { emit } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { isNil } from 'es-toolkit'
 import { Ticker } from 'pixi.js'
@@ -9,6 +10,7 @@ import { useAppStore } from '@/stores/app'
 import { useCatStore } from '@/stores/cat'
 import { useModelStore } from '@/stores/model'
 import { inBetween } from '@/utils/is'
+import { getCursorMonitor } from '@/utils/monitor'
 import { isMac, isWindows } from '@/utils/platform'
 
 import { INVOKE_KEY, LISTEN_KEY, WINDOW_LABEL } from '../constants'
@@ -49,6 +51,37 @@ export function useDevice() {
   const smoothedCursorPoint = ref<CursorPoint>()
   const scaleFactor = ref(1)
   const { handlePress, handleRelease, handleMouseChange, handleMouseMove } = useModel()
+
+  function getModelMode() {
+    return modelStore.currentModel?.mode ?? 'standard'
+  }
+
+  function publishButtonActivity(kind: 'KeyboardPress' | 'KeyboardRelease' | 'MousePress' | 'MouseRelease', value: string) {
+    void emit(LISTEN_KEY.LOCAL_ACTIVITY, {
+      kind,
+      value,
+      modelMode: getModelMode(),
+    })
+  }
+
+  async function publishMouseMoveActivity(cursorPoint: CursorPoint) {
+    const x = cursorPoint.x * scaleFactor.value
+    const y = cursorPoint.y * scaleFactor.value
+    const monitor = await getCursorMonitor(new PhysicalPosition(x, y))
+
+    if (!monitor) return
+
+    const { position, size } = monitor
+
+    void emit(LISTEN_KEY.LOCAL_ACTIVITY, {
+      kind: 'MouseMove',
+      value: {
+        xRatio: (x - position.x) / size.width,
+        yRatio: (y - position.y) / size.height,
+      },
+      modelMode: getModelMode(),
+    })
+  }
 
   const tickerCallback = (ticker: Ticker) => {
     const destination = latestCursorPoint.value
@@ -187,6 +220,8 @@ export function useDevice() {
     const { kind, value } = payload
 
     if (kind === 'KeyboardPress' || kind === 'KeyboardRelease') {
+      publishButtonActivity(kind, value)
+
       const nextValue = getSupportedKey(value)
 
       if (!nextValue) return
@@ -210,10 +245,16 @@ export function useDevice() {
 
     switch (kind) {
       case 'MousePress':
+        publishButtonActivity(kind, value)
+
         return handleMouseChange(value)
       case 'MouseRelease':
+        publishButtonActivity(kind, value)
+
         return handleMouseChange(value, false)
       case 'MouseMove':
+        void publishMouseMoveActivity(value)
+
         return latestCursorPoint.value = value
     }
   })

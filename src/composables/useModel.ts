@@ -4,7 +4,7 @@ import { LogicalSize } from '@tauri-apps/api/dpi'
 import { resolveResource, sep } from '@tauri-apps/api/path'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { message } from 'antdv-next'
-import { isNil, round } from 'es-toolkit'
+import { round } from 'es-toolkit'
 import { findKey, nth } from 'es-toolkit/compat'
 import { ref } from 'vue'
 
@@ -179,46 +179,7 @@ export function useModel() {
     const xRatio = (cursorPoint.x - position.x) / size.width
     const yRatio = (cursorPoint.y - position.y) / size.height
 
-    for (const id of [
-      'ParamMouseX',
-      'ParamMouseY',
-      'ParamAngleX',
-      'ParamAngleY',
-      'ParamAngleZ',
-      'ParamEyeBallX',
-      'ParamEyeBallY',
-    ]) {
-      const range = live2d.getParameterValueRange(id)
-
-      if (!range) continue
-
-      const { min, max } = range
-
-      if (isNil(min) || isNil(max)) continue
-
-      const isXAxis = id.endsWith('X')
-      const isYAxis = id.endsWith('Y')
-      const isZAxis = id.endsWith('Z')
-
-      let value: number
-
-      if (isZAxis) {
-        const dragX = 1 - 2 * xRatio
-        const dragY = 1 - 2 * yRatio
-
-        value = dragX * dragY * min
-      } else {
-        const ratio = isXAxis ? xRatio : yRatio
-
-        value = max - ratio * (max - min)
-      }
-
-      if (!isYAxis && catStore.model.mouseMirror) {
-        value *= -1
-      }
-
-      live2d.setParameterValue(id, value)
-    }
+    live2d.setMouseRatio(xRatio, yRatio, catStore.model.mouseMirror)
   }
 
   async function handleAxisChange(id: string, value: number) {

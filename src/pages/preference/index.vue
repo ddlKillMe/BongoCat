@@ -5,6 +5,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import UpdateApp from '@/components/update-app/index.vue'
+import { useBongoConnection } from '@/composables/useBongoConnection'
 import { useTray } from '@/composables/useTray'
 import { useAppStore } from '@/stores/app'
 import { useGeneralStore } from '@/stores/general'
@@ -13,11 +14,13 @@ import { isMac } from '@/utils/platform'
 
 import About from './components/about/index.vue'
 import Cat from './components/cat/index.vue'
+import Connect from './components/connect/index.vue'
 import General from './components/general/index.vue'
 import Model from './components/model/index.vue'
 import Shortcut from './components/shortcut/index.vue'
 
 useTray()
+useBongoConnection()
 const appStore = useAppStore()
 const current = ref(0)
 const { t } = useI18n()
@@ -53,6 +56,12 @@ const menus = computed(() => [
     label: t('pages.preference.shortcut.title'),
     icon: 'i-solar:keyboard-bold',
     component: Shortcut,
+  },
+  {
+    key: 'connect',
+    label: 'Connect',
+    icon: 'i-lucide:radio-tower',
+    component: Connect,
   },
   {
     key: 'about',

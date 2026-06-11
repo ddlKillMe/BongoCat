@@ -10,6 +10,8 @@ export const LISTEN_KEY = {
   GAMEPAD_CHANGED: 'gamepad-changed',
   START_MOTION: 'start-motion',
   SET_EXPRESSION: 'set-expression',
+  LOCAL_ACTIVITY: 'local-activity',
+  REMOTE_ACTIVITY: 'remote-activity',
 }
 
 export const INVOKE_KEY = {
@@ -30,4 +32,5 @@ export const LANGUAGE = {
 export const WINDOW_LABEL = {
   MAIN: 'main',
   PREFERENCE: 'preference',
+  REMOTE: 'remote',
 } as const

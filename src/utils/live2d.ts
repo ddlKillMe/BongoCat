@@ -15,16 +15,20 @@ import { join } from './path'
 
 Config.MouseFollow = false
 
-class Live2d {
+export class Live2d {
   private app: Application | null = null
   public model: Live2DSprite | null = null
 
-  constructor() { }
+  constructor(private readonly canvasId = 'live2dCanvas') { }
 
   private initApp() {
     if (this.app) return
 
-    const view = document.getElementById('live2dCanvas') as HTMLCanvasElement
+    const view = document.getElementById(this.canvasId) as HTMLCanvasElement | null
+
+    if (!view) {
+      throw new Error(`Canvas #${this.canvasId} was not found`)
+    }
 
     this.app = new Application()
 
@@ -124,6 +128,49 @@ class Live2d {
 
   public setParameterValue(id: string, value: number | boolean) {
     return this.model?.setParameterValueById(id, Number(value))
+  }
+
+  public setMouseRatio(xRatio: number, yRatio: number, mirror = false) {
+    for (const id of [
+      'ParamMouseX',
+      'ParamMouseY',
+      'ParamAngleX',
+      'ParamAngleY',
+      'ParamAngleZ',
+      'ParamEyeBallX',
+      'ParamEyeBallY',
+    ]) {
+      const range = this.getParameterValueRange(id)
+
+      if (!range) continue
+
+      const { min, max } = range
+
+      if (min == null || max == null) continue
+
+      const isXAxis = id.endsWith('X')
+      const isYAxis = id.endsWith('Y')
+      const isZAxis = id.endsWith('Z')
+
+      let value: number
+
+      if (isZAxis) {
+        const dragX = 1 - 2 * xRatio
+        const dragY = 1 - 2 * yRatio
+
+        value = dragX * dragY * min
+      } else {
+        const ratio = isXAxis ? xRatio : yRatio
+
+        value = max - ratio * (max - min)
+      }
+
+      if (!isYAxis && mirror) {
+        value *= -1
+      }
+
+      this.setParameterValue(id, value)
+    }
   }
 
   public setMotionSoundEnabled(enabled: boolean) {
